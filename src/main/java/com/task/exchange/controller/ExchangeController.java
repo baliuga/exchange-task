@@ -1,8 +1,12 @@
 package com.task.exchange.controller;
 
-import com.task.exchange.model.Commission;
+import com.task.exchange.dto.Commission;
+import com.task.exchange.dto.CommissionMapper;
+import com.task.exchange.dto.ExchangeRate;
+import com.task.exchange.dto.ExchangeRateMapper;
+import com.task.exchange.model.CommissionEntity;
 import com.task.exchange.model.Error;
-import com.task.exchange.model.ExchangeRate;
+import com.task.exchange.model.ExchangeRateEntity;
 import com.task.exchange.model.ExchangeRequest;
 import com.task.exchange.service.ExchangeService;
 import io.swagger.annotations.*;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -20,6 +25,10 @@ public class ExchangeController {
 
     @Autowired
     private ExchangeService exchangeService;
+    @Autowired
+    private CommissionMapper commissionMapper;
+    @Autowired
+    private ExchangeRateMapper exchangeRateMapper;
 
     @ApiOperation(value = "Получить список установленных комиссий.", response = Commission.class, responseContainer = "List", authorizations = {
             @Authorization(value = "basicAuth")}, tags = {"commissions",})
@@ -30,7 +39,9 @@ public class ExchangeController {
             produces = {"application/json"},
             method = RequestMethod.GET)
     public ResponseEntity<List<Commission>> getCommissions() {
-        List<Commission> commissions = exchangeService.retrieveCommissions();
+        List<Commission> commissions = exchangeService.retrieveCommissions().stream()
+                .map(commission -> commissionMapper.toDto(commission))
+                .collect(Collectors.toList());
         return new ResponseEntity<>(commissions, HttpStatus.OK);
     }
 
@@ -45,8 +56,8 @@ public class ExchangeController {
             consumes = {"application/json"},
             method = RequestMethod.POST)
     public ResponseEntity<Commission> saveCommission(@ApiParam(value = "commission", required = true) @Valid @RequestBody Commission commission) {
-        Commission commission1 = exchangeService.saveCommission(commission);
-        return new ResponseEntity<>(commission1, HttpStatus.OK);
+        CommissionEntity newCommission = exchangeService.saveCommission(commissionMapper.toEntity(commission));
+        return new ResponseEntity<>(commissionMapper.toDto(newCommission), HttpStatus.OK);
     }
 
     @ApiOperation(value = "Получить все курсы обмена валют.", response = ExchangeRate.class, responseContainer = "List", authorizations = {
@@ -58,7 +69,10 @@ public class ExchangeController {
             produces = {"application/json"},
             method = RequestMethod.GET)
     public ResponseEntity<List<ExchangeRate>> getExchangeRates() {
-        return new ResponseEntity<>(exchangeService.retrieveExchangeRates(), HttpStatus.OK);
+        List<ExchangeRate> exchangeRates = exchangeService.retrieveExchangeRates().stream()
+                .map(rate -> exchangeRateMapper.toDto(rate))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(exchangeRates, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Установить курс обмена валют по валютной паре. Курс обртаной пары должен быть установлен автоматически.", response = ExchangeRate.class, authorizations = {
@@ -72,8 +86,8 @@ public class ExchangeController {
             consumes = {"application/json"},
             method = RequestMethod.POST)
     public ResponseEntity<ExchangeRate> saveExchangeRates(@ApiParam(value = "exchangeRate", required = true) @Valid @RequestBody ExchangeRate exchangeRate) {
-        ExchangeRate exchangeRate1 = exchangeService.saveExchangeRate(exchangeRate);
-        return new ResponseEntity<>(exchangeRate1, HttpStatus.OK);
+        ExchangeRateEntity newExchangeRate = exchangeService.saveExchangeRate(exchangeRateMapper.toEntity(exchangeRate));
+        return new ResponseEntity<>(exchangeRateMapper.toDto(newExchangeRate), HttpStatus.OK);
     }
 
     @ApiOperation(value = "Запрос обмена валют.", response = ExchangeRequest.class, authorizations = {

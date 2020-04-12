@@ -1,9 +1,6 @@
 package com.task.exchange.service;
 
-import com.task.exchange.model.Commission;
-import com.task.exchange.model.ExchangeRate;
-import com.task.exchange.model.ExchangeRequest;
-import com.task.exchange.model.OperationTypeEnum;
+import com.task.exchange.model.*;
 import com.task.exchange.repository.CommissionRepository;
 import com.task.exchange.repository.ExchangeRateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ExchangeServiceImpl implements ExchangeService {
@@ -24,53 +22,54 @@ public class ExchangeServiceImpl implements ExchangeService {
     final static private BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 
     final static private String COMMISSION_PCT_ERR_MESSAGE = "Please add commission percent for this pair";
+    final static private String EXCHANGE_RATE_ERR_MESSAGE = "Please add exchange rate for this pair";
     final static private String AMOUNT_FROM_ERR_MESSAGE = "Please specify amountFrom value";
     final static private String AMOUNT_TO_ERR_MESSAGE = "Please specify amountTo value";
 
     @Override
-    public List<Commission> retrieveCommissions() {
+    public List<CommissionEntity> retrieveCommissions() {
         return commissionRepository.findAll();
     }
 
     @Override
-    public Commission saveCommission(Commission newCommission) {
-        Commission commission = commissionRepository
-                .findCommissionByCurrency(newCommission.getFromCurrency(), newCommission.getToCurrency());
-        if (commission != null) {
-            return updateCommission(commission, newCommission.getCommissionPct());
+    public CommissionEntity saveCommission(CommissionEntity newCommission) {
+        Optional<CommissionEntity> commission = commissionRepository
+                .findByFromCurrencyAndToCurrency(newCommission.getFromCurrency(), newCommission.getToCurrency());
+        if (commission.isPresent()) {
+            return updateCommission(commission.get(), newCommission.getCommissionPct());
         }
 
         return commissionRepository.save(newCommission);
     }
 
-    private Commission updateCommission(Commission commission, BigDecimal commissionPct) {
+    private CommissionEntity updateCommission(CommissionEntity commission, BigDecimal commissionPct) {
         commission.setCommissionPct(commissionPct);
         return commissionRepository.save(commission);
     }
 
     @Override
-    public List<ExchangeRate> retrieveExchangeRates() {
+    public List<ExchangeRateEntity> retrieveExchangeRates() {
         return exchangeRateRepository.findAll();
     }
 
     @Override
-    public ExchangeRate saveExchangeRate(ExchangeRate newExchangeRate) {
-        ExchangeRate exchangeRate = exchangeRateRepository
-                .findExchangeRateByCurrency(newExchangeRate.getFromCurrency(), newExchangeRate.getToCurrency());
+    public ExchangeRateEntity saveExchangeRate(ExchangeRateEntity newExchangeRate) {
+        Optional<ExchangeRateEntity> exchangeRate = exchangeRateRepository
+                .findByFromCurrencyAndToCurrency(newExchangeRate.getFromCurrency(), newExchangeRate.getToCurrency());
         BigDecimal newBackRate = ONE.divide(newExchangeRate.getRate(), 2, BigDecimal.ROUND_HALF_UP);
-        if (exchangeRate != null) {
-            return updateExchangeRate(newExchangeRate, exchangeRate, newBackRate);
+        if (exchangeRate.isPresent()) {
+            return updateExchangeRate(newExchangeRate, exchangeRate.get(), newBackRate);
         }
 
-        ExchangeRate backExchangeRate = new ExchangeRate(newExchangeRate.getToCurrency(), newExchangeRate.getFromCurrency(), newBackRate);
+        ExchangeRateEntity backExchangeRate = new ExchangeRateEntity(newExchangeRate.getToCurrency(), newExchangeRate.getFromCurrency(), newBackRate);
         exchangeRateRepository.save(backExchangeRate);
 
         return exchangeRateRepository.save(newExchangeRate);
     }
 
-    private ExchangeRate updateExchangeRate(ExchangeRate newExchangeRate, ExchangeRate exchangeRate, BigDecimal newBackRate) {
-        ExchangeRate backExchangeRate = exchangeRateRepository
-                .findExchangeRateByCurrency(newExchangeRate.getToCurrency(), newExchangeRate.getFromCurrency());
+    private ExchangeRateEntity updateExchangeRate(ExchangeRateEntity newExchangeRate, ExchangeRateEntity exchangeRate, BigDecimal newBackRate) {
+        ExchangeRateEntity backExchangeRate = exchangeRateRepository
+                .findByFromCurrencyAndToCurrency(newExchangeRate.getToCurrency(), newExchangeRate.getFromCurrency()).get();
         backExchangeRate.setRate(newBackRate);
         exchangeRateRepository.save(backExchangeRate);
 
@@ -80,12 +79,13 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeRequest exchange(ExchangeRequest exchangeRequest) {
-        BigDecimal commissionPct = commissionRepository
-                .findCommissionAmountByCurrency(exchangeRequest.getCurrencyFrom(), exchangeRequest.getCurrencyTo());
-        if (commissionPct == null) {
+        Optional<CommissionEntity> commission = commissionRepository
+                .findByFromCurrencyAndToCurrency(exchangeRequest.getCurrencyFrom(), exchangeRequest.getCurrencyTo());
+        if (!commission.isPresent()) {
             throw new RuntimeException(COMMISSION_PCT_ERR_MESSAGE);
         }
 
+        BigDecimal commissionPct = commission.get().getCommissionPct();
         if (OperationTypeEnum.GIVE == exchangeRequest.getOperationType()) {
             setAmountTo(exchangeRequest, commissionPct);
         } else {
@@ -101,9 +101,8 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new RuntimeException(AMOUNT_FROM_ERR_MESSAGE);
         }
 
-        BigDecimal exchangeRate = exchangeRateRepository
-                .findRateAmountByCurrency(exchangeRequest.getCurrencyFrom(), exchangeRequest.getCurrencyTo());
-        exchangeRequest.setAmountTo(calculateDirectExchange(exchangeRate, commissionPct, amountFrom));
+        BigDecimal rate = getRateForCurrencyPair(exchangeRequest.getCurrencyFrom(), exchangeRequest.getCurrencyTo());
+        exchangeRequest.setAmountTo(calculateDirectExchange(rate, commissionPct, amountFrom));
     }
 
     private BigDecimal calculateDirectExchange(BigDecimal exchangeRate, BigDecimal commissionPct, BigDecimal amountFrom) {
@@ -119,9 +118,8 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new RuntimeException(AMOUNT_TO_ERR_MESSAGE);
         }
 
-        BigDecimal exchangeRate = exchangeRateRepository
-                .findRateAmountByCurrency(exchangeRequest.getCurrencyTo(), exchangeRequest.getCurrencyFrom());
-        exchangeRequest.setAmountFrom(calculateBackExchange(exchangeRate, commissionPct, amountTo));
+        BigDecimal rate = getRateForCurrencyPair(exchangeRequest.getCurrencyTo(), exchangeRequest.getCurrencyFrom());
+        exchangeRequest.setAmountFrom(calculateBackExchange(rate, commissionPct, amountTo));
     }
 
     private BigDecimal calculateBackExchange(BigDecimal exchangeRate, BigDecimal commissionPct, BigDecimal amountTo) {
@@ -129,5 +127,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         BigDecimal commission = convertedCurrency.multiply(commissionPct).divide(ONE_HUNDRED, 2, BigDecimal.ROUND_HALF_UP);
 
         return convertedCurrency.add(commission);
+    }
+
+    private BigDecimal getRateForCurrencyPair(CurrencyEnum fromCurrency, CurrencyEnum toCurrency) {
+        Optional<ExchangeRateEntity> exchangeRate = exchangeRateRepository.findByFromCurrencyAndToCurrency(fromCurrency, toCurrency);
+        if (!exchangeRate.isPresent()) {
+            throw new RuntimeException(EXCHANGE_RATE_ERR_MESSAGE);
+        }
+
+        return exchangeRate.get().getRate();
     }
 }

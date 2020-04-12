@@ -1,18 +1,18 @@
 package com.task.exchange.service;
 
-import com.task.exchange.model.Commission;
-import com.task.exchange.model.ExchangeRate;
+import com.task.exchange.model.CommissionEntity;
+import com.task.exchange.model.ExchangeRateEntity;
 import com.task.exchange.model.ExchangeRequest;
 
 import java.util.List;
 
 public interface ExchangeService {
 
-    List<Commission> retrieveCommissions();
-    Commission saveCommission(Commission commission);
+    List<CommissionEntity> retrieveCommissions();
+    CommissionEntity saveCommission(CommissionEntity commission);
 
-    List<ExchangeRate> retrieveExchangeRates();
-    ExchangeRate saveExchangeRate(ExchangeRate exchangeRate);
+    List<ExchangeRateEntity> retrieveExchangeRates();
+    ExchangeRateEntity saveExchangeRate(ExchangeRateEntity exchangeRate);
 
     ExchangeRequest exchange(ExchangeRequest exchangeRequest);
 

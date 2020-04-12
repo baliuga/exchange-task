@@ -1,20 +1,15 @@
 package com.task.exchange.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.persistence.*;
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "COMMISSIONS")
-public class Commission {
+@Table(name = "EXCHANGE_RATE")
+public class ExchangeRateEntity {
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    @JsonIgnore
     private Long id;
 
     @Column(name = "FROM_CURRENCY")
@@ -25,11 +20,18 @@ public class Commission {
     @NotNull(message = "Please provide toCurrency")
     private CurrencyEnum toCurrency;
 
-    @Column(name = "COMMISSION_PERCENT")
-    @DecimalMin("0.00")
-    @DecimalMax("100.00")
-    @NotNull(message = "Please provide a commission percent")
-    private BigDecimal commissionPct;
+    @Column(name = "RATE")
+    @NotNull(message = "Please provide rate")
+    private BigDecimal rate;
+
+    public ExchangeRateEntity() {
+    }
+
+    public ExchangeRateEntity(CurrencyEnum fromCurrency, CurrencyEnum toCurrency, BigDecimal rate) {
+        this.fromCurrency = fromCurrency;
+        this.toCurrency = toCurrency;
+        this.rate = rate;
+    }
 
     public Long getId() {
         return id;
@@ -55,11 +57,11 @@ public class Commission {
         this.toCurrency = toCurrency;
     }
 
-    public BigDecimal getCommissionPct() {
-        return commissionPct;
+    public BigDecimal getRate() {
+        return rate;
     }
 
-    public void setCommissionPct(BigDecimal commissionPct) {
-        this.commissionPct = commissionPct;
+    public void setRate(BigDecimal rate) {
+        this.rate = rate;
     }
 }
