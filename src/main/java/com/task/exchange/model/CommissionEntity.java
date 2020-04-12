@@ -28,6 +28,15 @@ public class CommissionEntity {
     @NotNull(message = "Please provide a commission percent")
     private BigDecimal commissionPct;
 
+    public CommissionEntity() {
+    }
+
+    public CommissionEntity(CurrencyEnum fromCurrency, CurrencyEnum toCurrency, BigDecimal commissionPct) {
+        this.fromCurrency = fromCurrency;
+        this.toCurrency = toCurrency;
+        this.commissionPct = commissionPct;
+    }
+
     public Long getId() {
         return id;
     }

@@ -14,6 +14,17 @@ public class ExchangeRequest {
 
     private OperationTypeEnum operationType;
 
+    public ExchangeRequest() {
+    }
+
+    public ExchangeRequest(BigDecimal amountFrom, BigDecimal amountTo, CurrencyEnum currencyFrom, CurrencyEnum currencyTo, OperationTypeEnum operationType) {
+        this.amountFrom = amountFrom;
+        this.amountTo = amountTo;
+        this.currencyFrom = currencyFrom;
+        this.currencyTo = currencyTo;
+        this.operationType = operationType;
+    }
+
     public BigDecimal getAmountFrom() {
         return amountFrom;
     }
