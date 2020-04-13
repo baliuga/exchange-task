@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -107,9 +108,9 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private BigDecimal calculateDirectExchange(BigDecimal exchangeRate, BigDecimal commissionPct, BigDecimal amountFrom) {
         BigDecimal convertedCurrency = exchangeRate.multiply(amountFrom);
-        BigDecimal commission = amountFrom.multiply(commissionPct).divide(ONE_HUNDRED, 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal commission = convertedCurrency.multiply(commissionPct).divide(ONE_HUNDRED, 2, BigDecimal.ROUND_HALF_UP);
 
-        return convertedCurrency.subtract(commission);
+        return convertedCurrency.subtract(commission).setScale(2, RoundingMode.HALF_UP);
     }
 
     private void setAmountFrom(ExchangeRequest exchangeRequest, BigDecimal commissionPct) {
@@ -126,7 +127,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         BigDecimal convertedCurrency = exchangeRate.multiply(amountTo);
         BigDecimal commission = convertedCurrency.multiply(commissionPct).divide(ONE_HUNDRED, 2, BigDecimal.ROUND_HALF_UP);
 
-        return convertedCurrency.add(commission);
+        return convertedCurrency.add(commission).setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal getRateForCurrencyPair(CurrencyEnum fromCurrency, CurrencyEnum toCurrency) {

@@ -28,10 +28,10 @@ class ExchangeApplicationTests {
     @InjectMocks
     private ExchangeServiceImpl exchangeService;
 
-    final static private BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
-    final static private BigDecimal COMMISSION_PERCENT = BigDecimal.valueOf(15);
-    final static private BigDecimal DIRECT_RATE = BigDecimal.valueOf(0.5);
-    final static private BigDecimal BACK_RATE = BigDecimal.valueOf(2);
+    final static private BigDecimal AMOUNT_FROM = BigDecimal.valueOf(100);
+    final static private BigDecimal AMOUNT_TO = BigDecimal.valueOf(97);
+    final static private BigDecimal COMMISSION_PERCENT = BigDecimal.valueOf(3);
+    final static private BigDecimal RATE = BigDecimal.valueOf(1);
 
     @BeforeEach
     void init() {
@@ -42,28 +42,28 @@ class ExchangeApplicationTests {
     @Test
     void shouldReturnValidDirectExchangeValue() {
         // given
-        ExchangeRequest request = new ExchangeRequest(ONE_HUNDRED, ONE_HUNDRED, CurrencyEnum.USD, CurrencyEnum.EUR, OperationTypeEnum.GIVE);
-        ExchangeRateEntity directRateEntity = new ExchangeRateEntity(CurrencyEnum.USD, CurrencyEnum.EUR, DIRECT_RATE);
+        ExchangeRequest request = new ExchangeRequest(AMOUNT_FROM, BigDecimal.ZERO, CurrencyEnum.USD, CurrencyEnum.EUR, OperationTypeEnum.GIVE);
+        ExchangeRateEntity directRateEntity = new ExchangeRateEntity(CurrencyEnum.USD, CurrencyEnum.EUR, RATE);
         given(exchangeRateRepository.findByFromCurrencyAndToCurrency(CurrencyEnum.USD, CurrencyEnum.EUR)).willReturn(Optional.of(directRateEntity));
 
         // when
         ExchangeRequest response = exchangeService.exchange(request);
 
         // then
-        assertEquals(BigDecimal.valueOf(35).stripTrailingZeros(), response.getAmountTo().stripTrailingZeros());
+        assertEquals(AMOUNT_TO, response.getAmountTo().stripTrailingZeros());
     }
 
     @Test
     void shouldReturnValidBackExchangeValue() {
         // given
-        ExchangeRequest request = new ExchangeRequest(ONE_HUNDRED, ONE_HUNDRED, CurrencyEnum.USD, CurrencyEnum.EUR, OperationTypeEnum.GET);
-        ExchangeRateEntity backRateEntity = new ExchangeRateEntity(CurrencyEnum.EUR, CurrencyEnum.USD, BACK_RATE);
+        ExchangeRequest request = new ExchangeRequest(BigDecimal.ZERO, AMOUNT_TO, CurrencyEnum.USD, CurrencyEnum.EUR, OperationTypeEnum.GET);
+        ExchangeRateEntity backRateEntity = new ExchangeRateEntity(CurrencyEnum.EUR, CurrencyEnum.USD, RATE);
         given(exchangeRateRepository.findByFromCurrencyAndToCurrency(CurrencyEnum.EUR, CurrencyEnum.USD)).willReturn(Optional.of(backRateEntity));
 
         // when
         ExchangeRequest response = exchangeService.exchange(request);
 
         // then
-        assertEquals(BigDecimal.valueOf(230).stripTrailingZeros(), response.getAmountFrom().stripTrailingZeros());
+        assertEquals(BigDecimal.valueOf(99.91), response.getAmountFrom().stripTrailingZeros());
     }
 }
