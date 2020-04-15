@@ -28,10 +28,11 @@ class ExchangeApplicationTests {
     @InjectMocks
     private ExchangeServiceImpl exchangeService;
 
-    final static private BigDecimal AMOUNT_FROM = BigDecimal.valueOf(100);
-    final static private BigDecimal AMOUNT_TO = BigDecimal.valueOf(97);
-    final static private BigDecimal COMMISSION_PERCENT = BigDecimal.valueOf(3);
-    final static private BigDecimal RATE = BigDecimal.valueOf(1);
+    final static private BigDecimal AMOUNT_FROM = BigDecimal.valueOf(25.25);
+    final static private BigDecimal AMOUNT_TO = BigDecimal.valueOf(113.62);
+    final static private BigDecimal COMMISSION_PERCENT = BigDecimal.valueOf(10);
+    final static private BigDecimal RATE = BigDecimal.valueOf(5);
+    final static private BigDecimal BACK_RATE = BigDecimal.valueOf(0.2);
 
     @BeforeEach
     void init() {
@@ -57,13 +58,13 @@ class ExchangeApplicationTests {
     void shouldReturnValidBackExchangeValue() {
         // given
         ExchangeRequest request = new ExchangeRequest(BigDecimal.ZERO, AMOUNT_TO, CurrencyEnum.USD, CurrencyEnum.EUR, OperationTypeEnum.GET);
-        ExchangeRateEntity backRateEntity = new ExchangeRateEntity(CurrencyEnum.EUR, CurrencyEnum.USD, RATE);
+        ExchangeRateEntity backRateEntity = new ExchangeRateEntity(CurrencyEnum.EUR, CurrencyEnum.USD, BACK_RATE);
         given(exchangeRateRepository.findByFromCurrencyAndToCurrency(CurrencyEnum.EUR, CurrencyEnum.USD)).willReturn(Optional.of(backRateEntity));
 
         // when
         ExchangeRequest response = exchangeService.exchange(request);
 
         // then
-        assertEquals(BigDecimal.valueOf(99.91), response.getAmountFrom().stripTrailingZeros());
+        assertEquals(AMOUNT_FROM, response.getAmountFrom().stripTrailingZeros());
     }
 }

@@ -15,17 +15,12 @@ public class CommissionEntity {
     private Long id;
 
     @Column(name = "FROM_CURRENCY")
-    @NotNull(message = "Please provide fromCurrency")
     private CurrencyEnum fromCurrency;
 
     @Column(name = "TO_CURRENCY")
-    @NotNull(message = "Please provide toCurrency")
     private CurrencyEnum toCurrency;
 
     @Column(name = "COMMISSION_PERCENT")
-    @DecimalMin("0.00")
-    @DecimalMax("100.00")
-    @NotNull(message = "Please provide a commission percent")
     private BigDecimal commissionPct;
 
     public CommissionEntity() {

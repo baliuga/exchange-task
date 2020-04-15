@@ -100,13 +100,13 @@ public class ExchangeController {
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    public ResponseEntity<ExchangeRequest> exchange(@ApiParam(value = "exchangeRequest", required = true) @RequestBody ExchangeRequest exchangeRequest) {
+    public ResponseEntity<ExchangeRequest> exchange(@ApiParam(value = "exchangeRequest", required = true) @Valid @RequestBody ExchangeRequest exchangeRequest) {
         return new ResponseEntity<>(exchangeService.exchange(exchangeRequest), HttpStatus.OK);
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    public Error handleCustomException(Exception ex) {
+    public Error customExceptionHandler(Exception ex) {
         return new Error(ex.getMessage());
     }
 }

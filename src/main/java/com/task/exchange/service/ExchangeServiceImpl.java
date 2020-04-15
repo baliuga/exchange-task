@@ -124,10 +124,10 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     private BigDecimal calculateBackExchange(BigDecimal exchangeRate, BigDecimal commissionPct, BigDecimal amountTo) {
-        BigDecimal convertedCurrency = exchangeRate.multiply(amountTo);
-        BigDecimal commission = convertedCurrency.multiply(commissionPct).divide(ONE_HUNDRED, 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal commission = (amountTo.multiply(commissionPct)).divide((ONE_HUNDRED.subtract(commissionPct)), 2, RoundingMode.HALF_UP);
+        BigDecimal currencyAmount = amountTo.add(commission);
 
-        return convertedCurrency.add(commission).setScale(2, RoundingMode.HALF_UP);
+        return currencyAmount.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal getRateForCurrencyPair(CurrencyEnum fromCurrency, CurrencyEnum toCurrency) {

@@ -1,11 +1,14 @@
 package com.task.exchange.model;
 
+import javax.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 
 public class ExchangeRequest {
 
+    @DecimalMin(value = "0.00", message = "amountFrom should not be negative")
     private BigDecimal amountFrom;
 
+    @DecimalMin(value = "0.00", message = "amountTo should not be negative")
     private BigDecimal amountTo;
 
     private CurrencyEnum currencyFrom;

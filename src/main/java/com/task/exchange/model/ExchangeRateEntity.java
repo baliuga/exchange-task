@@ -1,7 +1,6 @@
 package com.task.exchange.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -13,15 +12,12 @@ public class ExchangeRateEntity {
     private Long id;
 
     @Column(name = "FROM_CURRENCY")
-    @NotNull(message = "Please provide fromCurrency")
     private CurrencyEnum fromCurrency;
 
     @Column(name = "TO_CURRENCY")
-    @NotNull(message = "Please provide toCurrency")
     private CurrencyEnum toCurrency;
 
     @Column(name = "RATE")
-    @NotNull(message = "Please provide rate")
     private BigDecimal rate;
 
     public ExchangeRateEntity() {
