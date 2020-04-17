@@ -106,7 +106,7 @@ public class ExchangeController {
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    public Error customExceptionHandler(Exception ex) {
-        return new Error(ex.getMessage());
+    public ResponseEntity<Error> customExceptionHandler(Exception ex) {
+        return new ResponseEntity<>(new Error(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

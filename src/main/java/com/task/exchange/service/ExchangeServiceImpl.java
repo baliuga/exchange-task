@@ -108,9 +108,9 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private BigDecimal calculateDirectExchange(BigDecimal exchangeRate, BigDecimal commissionPct, BigDecimal amountFrom) {
         BigDecimal convertedCurrency = exchangeRate.multiply(amountFrom);
-        BigDecimal commission = convertedCurrency.multiply(commissionPct).divide(ONE_HUNDRED, 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal commission = convertedCurrency.multiply(commissionPct).divide(ONE_HUNDRED);
 
-        return convertedCurrency.subtract(commission).setScale(2, RoundingMode.HALF_UP);
+        return convertedCurrency.subtract(commission).setScale(2, BigDecimal.ROUND_DOWN);
     }
 
     private void setAmountFrom(ExchangeRequest exchangeRequest, BigDecimal commissionPct) {
@@ -124,10 +124,10 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     private BigDecimal calculateBackExchange(BigDecimal exchangeRate, BigDecimal commissionPct, BigDecimal amountTo) {
-        BigDecimal commission = (amountTo.multiply(commissionPct)).divide((ONE_HUNDRED.subtract(commissionPct)), 2, RoundingMode.HALF_UP);
+        BigDecimal commission = (amountTo.multiply(commissionPct)).divide((ONE_HUNDRED.subtract(commissionPct)), 2, BigDecimal.ROUND_UP);
         BigDecimal currencyAmount = amountTo.add(commission);
 
-        return currencyAmount.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+        return currencyAmount.multiply(exchangeRate).setScale(2, BigDecimal.ROUND_UP);
     }
 
     private BigDecimal getRateForCurrencyPair(CurrencyEnum fromCurrency, CurrencyEnum toCurrency) {
