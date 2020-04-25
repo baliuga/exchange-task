@@ -1,9 +1,6 @@
 package com.task.exchange.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -11,7 +8,7 @@ import java.math.BigDecimal;
 public class CommissionEntity {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "FROM_CURRENCY")

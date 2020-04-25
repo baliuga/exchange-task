@@ -15,5 +15,4 @@ public interface ExchangeService {
     ExchangeRateEntity saveExchangeRate(ExchangeRateEntity exchangeRate);
 
     ExchangeRequest exchange(ExchangeRequest exchangeRequest);
-
 }
